@@ -1,0 +1,32 @@
+services:
+  debt:
+    image: node:24-alpine
+    container_name: debt_canis_world
+    working_dir: /app
+    command: sh -c "npm ci --include=dev && npm run build && npm run start -- -H 0.0.0.0 -p 7345"
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://host.docker.internal:7344}
+    ports:
+      - "${DEBT_PORT:-7345}:7345"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app
+      - debt_node_modules:/app/node_modules
+      - debt_next:/app/.next
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:7345/login >/dev/null 2>&1 || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+volumes:
+  debt_node_modules:
+  debt_next:
