@@ -1,5 +1,4 @@
 import { PageBreadcrumb } from "@/components/page-breadcrumb"
-import Link from "next/link"
 import { WifiOff } from "lucide-react"
 import {
   Empty,
@@ -20,13 +19,15 @@ export default function OfflinePage() {
             <EmptyMedia variant="icon">
               <WifiOff />
             </EmptyMedia>
-            <EmptyTitle>目前沒有網路連線</EmptyTitle>
+            <EmptyTitle>暫時無法開啟帳本</EmptyTitle>
             <EmptyDescription>
-              為保護你的資料，債務紀錄不會儲存在離線快取。請重新連線後再開啟帳本。
+              網路可能已中斷，或服務暫時無法使用。請確認連線，稍後再試。債務紀錄不會儲存在離線快取。
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button render={<Link href="/" />}>重新開啟帳本</Button>
+            <form action="/" method="get">
+              <Button type="submit">重新開啟帳本</Button>
+            </form>
           </EmptyContent>
         </Empty>
       </div>

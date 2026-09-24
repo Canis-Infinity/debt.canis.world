@@ -1,3 +1,4 @@
+import { createServer, request as httpRequest } from "node:http"
 import { test, expect, type Page } from "@playwright/test"
 
 async function login(page: Page, email = "user@debt.test") {
@@ -313,7 +314,7 @@ test("PWA metadata and offline fallback never cache debt APIs", async ({
   await page.reload()
   await context.setOffline(true)
   await page.goto("/offline-check")
-  await expect(page.getByText("目前沒有網路連線")).toBeVisible()
+  await expect(page.getByText("暫時無法開啟帳本")).toBeVisible()
   const cached = await page.evaluate(async () =>
     (
       await Promise.all(
@@ -834,4 +835,81 @@ test("custom payment method is required, persisted and inherited by repayments",
     0
   )
   await noOverflow(page)
+})
+
+test("PWA falls back on gateway errors and recovers after restart", async ({
+  page,
+}) => {
+  // A real reverse proxy ensures the response is observed by the service worker.
+  let gatewayStatus = 0
+  const proxy = createServer((req, res) => {
+    if (
+      gatewayStatus &&
+      !req.url?.startsWith("/_next/") &&
+      req.url !== "/sw.js"
+    ) {
+      res.writeHead(gatewayStatus, { "Content-Type": "text/plain" })
+      res.end("Proxy response")
+      return
+    }
+    const upstream = httpRequest(
+      {
+        hostname: "127.0.0.1",
+        port: 17345,
+        path: req.url,
+        method: req.method,
+        headers: req.headers,
+      },
+      (response) => {
+        res.writeHead(response.statusCode || 502, response.headers)
+        response.pipe(res)
+      }
+    )
+    upstream.on("error", () => {
+      res.writeHead(502)
+      res.end("Bad gateway")
+    })
+    req.pipe(upstream)
+  })
+  await new Promise<void>((resolve) => proxy.listen(0, "127.0.0.1", resolve))
+  const address = proxy.address()
+  if (!address || typeof address === "string")
+    throw new Error("Missing proxy port")
+  const origin = `http://127.0.0.1:${address.port}`
+  try {
+    await page.goto(`${origin}/login`)
+    await page.evaluate(async () => {
+      await navigator.serviceWorker.ready
+    })
+    await page.reload()
+    for (const status of [502, 503, 504]) {
+      gatewayStatus = status
+      await page.goto(`${origin}/restart-${status}`)
+      await expect(page.getByText("暫時無法開啟帳本")).toBeVisible()
+      // API errors must remain API errors, never the cached fallback HTML.
+      expect(
+        await page.evaluate(async () => {
+          const response = await fetch("/api/debt/auth/me")
+          return { status: response.status, body: await response.text() }
+        })
+      ).toEqual({ status, body: "Proxy response" })
+    }
+    gatewayStatus = 404
+    const missing = await page.goto(`${origin}/missing`)
+    expect(missing?.status()).toBe(404)
+    await expect(page.getByText("Proxy response")).toBeVisible()
+    gatewayStatus = 503
+    await page.goto(`${origin}/restart`)
+    gatewayStatus = 0
+    await page.getByRole("button", { name: "重新開啟帳本" }).click()
+    await expect(page).toHaveURL(`${origin}/login`)
+    await expect(
+      page.getByRole("button", { name: "登入", exact: true })
+    ).toBeVisible()
+  } finally {
+    proxy.closeAllConnections()
+    await new Promise<void>((resolve, reject) =>
+      proxy.close((error) => (error ? reject(error) : resolve()))
+    )
+  }
 })

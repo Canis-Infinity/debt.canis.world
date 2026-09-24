@@ -1,4 +1,4 @@
-const CACHE = "debt-shell-v2"
+const CACHE = "debt-shell-v3"
 const SHELL = ["/offline", "/icons/icon-192.png", "/icons/icon-512.png"]
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -49,7 +49,18 @@ self.addEventListener("fetch", (event) => {
     return
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match("/offline"))
+      fetch(event.request)
+        .then(async (response) => {
+          if ([502, 503, 504].includes(response.status)) {
+            const cache = await caches.open(CACHE)
+            return (await cache.match("/offline")) || response
+          }
+          return response
+        })
+        .catch(async () => {
+          const cache = await caches.open(CACHE)
+          return (await cache.match("/offline")) || Response.error()
+        })
     )
     return
   }
