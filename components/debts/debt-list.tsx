@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { paymentLabel } from "@/utils/payment"
 import { type Debt } from "@/lib/types"
-import { money } from "@/utils/format"
+import { formatAmount } from "@/utils/format"
 import { ChevronRight } from "lucide-react"
 
 export function DebtList({
@@ -57,13 +57,13 @@ export function DebtList({
                   {paymentLabel(debt.payment)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
-                  {money(debt.amount)}
+                  {formatAmount(debt.amount)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
-                  {money(debt.paid)}
+                  {formatAmount(debt.paid)}
                 </TableCell>
                 <TableCell className="text-right font-mono font-medium">
-                  {money(debt.remaining)}
+                  {formatAmount(debt.remaining)}
                 </TableCell>
                 <TableCell>
                   <Badge variant={debt.remaining ? "outline" : "secondary"}>
@@ -100,7 +100,7 @@ export function DebtList({
               <p className="mt-1 text-xs text-muted-foreground">
                 剩餘{" "}
                 <span className="font-mono font-medium break-all text-foreground">
-                  {money(debt.remaining)}
+                  {formatAmount(debt.remaining)}
                 </span>
               </p>
             </div>

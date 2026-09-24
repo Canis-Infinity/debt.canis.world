@@ -1,3 +1,9 @@
+export function formatAmount(value: number | bigint) {
+  return new Intl.NumberFormat("zh-TW", {
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
 export function money(value: number | bigint) {
   return new Intl.NumberFormat("zh-TW", {
     style: "currency",

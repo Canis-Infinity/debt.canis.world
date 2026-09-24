@@ -6,7 +6,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import type { useDebtHistory } from "@/hooks/use-debt-history"
 import type { Deletion, Editor } from "@/lib/record-types"
 import { type Debt } from "@/lib/types"
-import { money } from "@/utils/format"
+import { formatAmount } from "@/utils/format"
 import { Pencil, Trash2 } from "lucide-react"
 
 export function BorrowingHistory({
@@ -46,7 +46,7 @@ export function BorrowingHistory({
                     {borrowing.date} · {borrowing.initial ? "首次借款" : "加借"}
                   </p>
                   <p className="font-mono font-medium break-all">
-                    {money(borrowing.amount)}
+                    {formatAmount(borrowing.amount)}
                   </p>
                 </div>
                 <div className="flex gap-2">

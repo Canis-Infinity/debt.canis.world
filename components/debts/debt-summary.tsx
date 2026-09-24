@@ -2,7 +2,7 @@
 
 import { Progress } from "@/components/ui/progress"
 import { type Debt } from "@/lib/types"
-import { money } from "@/utils/format"
+import { formatAmount } from "@/utils/format"
 import { ArrowDownLeft, ArrowUpRight, CheckCheck, Wallet } from "lucide-react"
 
 export function DebtSummary({ debts }: { debts: Debt[] }) {
@@ -31,9 +31,10 @@ export function DebtSummary({ debts }: { debts: Debt[] }) {
               {label}
             </p>
             <p
-              className={`font-mono text-xl font-medium tracking-tight break-all sm:text-2xl ${index === 0 ? "text-primary" : ""}`}
+              className={`flex items-baseline gap-1 font-mono text-xl font-medium tracking-tight break-all sm:text-2xl ${index === 0 ? "text-primary" : ""}`}
             >
-              {money(value)}
+              <span className="shrink-0 text-sm sm:text-base">NT$</span>
+              <span className="min-w-0">{formatAmount(value)}</span>
             </p>
           </div>
         ))}

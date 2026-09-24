@@ -13,7 +13,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import type { useDebtHistory } from "@/hooks/use-debt-history"
 import type { Deletion, Editor } from "@/lib/record-types"
 import { type Debt } from "@/lib/types"
-import { money } from "@/utils/format"
+import { formatAmount } from "@/utils/format"
 import { Pencil, Trash2 } from "lucide-react"
 
 export function RepaymentHistory({
@@ -42,7 +42,7 @@ export function RepaymentHistory({
         <span className="text-muted-foreground">
           剩餘{" "}
           <span className="font-mono text-foreground">
-            {money(selected.remaining)}
+            {formatAmount(selected.remaining)}
           </span>
         </span>
       </div>
@@ -75,7 +75,7 @@ export function RepaymentHistory({
                     {repayment.date}
                   </p>
                   <p className="font-mono font-medium break-all sm:mt-1">
-                    {money(repayment.amount)}
+                    {formatAmount(repayment.amount)}
                   </p>
                 </div>
                 <div className="min-w-0 text-sm">

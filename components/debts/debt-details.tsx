@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { useDebtHistory } from "@/hooks/use-debt-history"
 import type { Deletion, Editor } from "@/lib/record-types"
 import { type Debt } from "@/lib/types"
-import { money } from "@/utils/format"
+import { formatAmount } from "@/utils/format"
 import { ArrowDownLeft, ArrowUpRight, Pencil, Trash2, X } from "lucide-react"
 import type { ReactNode } from "react"
 
@@ -66,7 +66,7 @@ export function DebtDetails({
             <div key={label}>
               <dt className="text-muted-foreground">{label}</dt>
               <dd className="mt-1 font-mono text-base font-medium break-all">
-                {money(value)}
+                {formatAmount(value)}
               </dd>
             </div>
           ))}
