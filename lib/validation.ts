@@ -24,6 +24,14 @@ const amount = z
   )
 const payment = z.discriminatedUnion("method", [
   z.object({
+    method: z.literal("other"),
+    description: z
+      .string()
+      .trim()
+      .min(1, "請填寫還款方式")
+      .max(100, "還款方式最多 100 個字元"),
+  }),
+  z.object({
     method: z.literal("bank"),
     bankCode: z.string().regex(/^\d{3}$/, "銀行代碼需為 3 位數字"),
     bankAccount: z.string().regex(/^\d{5,20}$/, "銀行帳號需為 5–20 位數字"),

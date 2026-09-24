@@ -39,7 +39,9 @@ export function PaymentFields({
             onChange(
               method === "bank"
                 ? { method, bankCode: "", bankAccount: "" }
-                : { method }
+                : method === "other"
+                  ? { method, description: "" }
+                  : { method }
             )
           }}
           options={Object.entries(paymentLabels).map(([value, label]) => ({
@@ -50,6 +52,28 @@ export function PaymentFields({
           describedBy="payment-method-error"
         />
       </FormField>
+      {value.method === "other" && (
+        <FormField
+          id="payment-description"
+          label="其它還款方式"
+          required
+          error={errors["payment.description"]}
+        >
+          <Input
+            id="payment-description"
+            value={value.description}
+            onChange={(event) =>
+              onChange({ ...value, description: event.target.value })
+            }
+            placeholder="請填寫還款方式"
+            maxLength={100}
+            required
+            disabled={disabled}
+            aria-invalid={!!errors["payment.description"]}
+            aria-describedby="payment-description-error"
+          />
+        </FormField>
+      )}
       {value.method === "bank" && (
         <div className="grid gap-4 sm:grid-cols-[100px_1fr]">
           <FormField

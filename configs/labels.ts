@@ -3,6 +3,7 @@ export const paymentLabels = {
   line_pay_money: "LINE Pay Money",
   ipass_money: "iPass Money",
   cash: "現金",
+  other: "其它",
 }
 export const statusLabels = {
   pending: "待核准",

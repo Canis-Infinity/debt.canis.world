@@ -1,4 +1,5 @@
 export type Payment =
+  | { method: "other"; description: string }
   | { method: "bank"; bankCode: string; bankAccount: string }
   | { method: "line_pay_money" | "ipass_money" | "cash" }
 

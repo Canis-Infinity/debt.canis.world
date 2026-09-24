@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { paymentLabels } from "@/configs/labels"
+import { paymentLabel } from "@/utils/payment"
 import { type Debt } from "@/lib/types"
 import { money } from "@/utils/format"
 import { ChevronRight } from "lucide-react"
@@ -53,7 +53,9 @@ export function DebtList({
                     {debt.date}
                   </span>
                 </TableCell>
-                <TableCell>{paymentLabels[debt.payment.method]}</TableCell>
+                <TableCell className="max-w-48 break-all whitespace-normal">
+                  {paymentLabel(debt.payment)}
+                </TableCell>
                 <TableCell className="text-right font-mono">
                   {money(debt.amount)}
                 </TableCell>
@@ -92,8 +94,8 @@ export function DebtList({
                   {debt.remaining ? "未結清" : "已結清"}
                 </Badge>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {debt.date} · {paymentLabels[debt.payment.method]}
+              <p className="mt-1 text-xs break-all text-muted-foreground">
+                {debt.date} · {paymentLabel(debt.payment)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 剩餘{" "}

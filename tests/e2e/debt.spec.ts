@@ -789,3 +789,49 @@ test("personal name editing and separate administrator navigation", async ({
   await page.goto("/admin")
   await expect(page.getByText("無法存取此頁面", { exact: true })).toBeVisible()
 })
+
+test("custom payment method is required, persisted and inherited by repayments", async ({
+  page,
+}, info) => {
+  await login(page)
+  await page.getByRole("button", { name: "新增債務", exact: true }).click()
+  const form = page.getByRole("dialog", { name: /^(新增|編輯)(債務|還款)$/ })
+  await form.getByLabel("借了多少（NT$）").fill("1000")
+  await form.getByLabel("跟誰借").fill(`其它方式測試-${info.project.name}`)
+  await form.getByRole("combobox", { name: "約定還款方式" }).click()
+  await page.getByRole("option", { name: "其它", exact: true }).click()
+  await expect(form.getByLabel("其它還款方式")).toHaveAttribute("required", "")
+  await form.getByRole("button", { name: "儲存紀錄" }).click()
+  await expect(form.getByText("請填寫還款方式", { exact: true })).toBeVisible()
+  await form.getByLabel("其它還款方式").fill("郵政劃撥")
+  await form.getByRole("button", { name: "儲存紀錄" }).click()
+  await expect(form).toHaveCount(0)
+  await page.reload()
+  await page
+    .getByRole("button", {
+      name: info.project.name === "mobile" ? "還款明細" : "明細",
+      exact: true,
+    })
+    .first()
+    .click()
+  const sheet = page.getByRole("dialog", { name: /跟 .* 借的債務/ })
+  await expect(sheet.getByText("其它：郵政劃撥", { exact: true })).toBeVisible()
+  await sheet.getByRole("button", { name: "新增還款", exact: true }).click()
+  await expect(form.getByLabel("其它還款方式")).toHaveValue("郵政劃撥")
+  await form.getByLabel("還了多少（NT$）").fill("100")
+  await form.getByLabel("其它還款方式").fill("超商代收")
+  await form.getByRole("button", { name: "儲存紀錄" }).click()
+  await expect(form).toHaveCount(0)
+  await expect(sheet.getByText("其它：超商代收", { exact: true })).toBeVisible()
+  await sheet.getByRole("button", { name: "編輯債務", exact: true }).click()
+  await expect(form.getByLabel("其它還款方式")).toHaveValue("郵政劃撥")
+  await form.getByRole("combobox", { name: "約定還款方式" }).click()
+  await page.getByRole("option", { name: "現金", exact: true }).click()
+  await expect(form.getByLabel("其它還款方式")).toHaveCount(0)
+  await form.getByRole("button", { name: "儲存紀錄" }).click()
+  await expect(form).toHaveCount(0)
+  await expect(sheet.getByText("其它：郵政劃撥", { exact: true })).toHaveCount(
+    0
+  )
+  await noOverflow(page)
+})
