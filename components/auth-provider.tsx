@@ -1,5 +1,9 @@
 "use client"
 
+import { toast } from "@/components/ui/toast"
+import { ApiError } from "@/lib/api"
+import type { User } from "@/lib/types"
+import { currentUser } from "@/services/auth"
 import {
   createContext,
   useCallback,
@@ -7,9 +11,6 @@ import {
   useEffect,
   useState,
 } from "react"
-import { api, ApiError } from "@/lib/api"
-import type { User } from "@/lib/types"
-import { toast } from "@/components/ui/toast"
 
 type AuthState = {
   user: User | null
@@ -27,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const reload = useCallback(() => setRevision((value) => value + 1), [])
   useEffect(() => {
     const controller = new AbortController()
-    api<{ user: User }>("/auth/me", { signal: controller.signal })
+    currentUser(controller.signal)
       .then((data) => {
         setUser(data.user)
         setError("")

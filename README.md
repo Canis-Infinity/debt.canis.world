@@ -109,3 +109,14 @@ npm run test:e2e
 - 帳號設定提供名稱修改與密碼變更；「使用者管理」為獨立的 `/admin` 頁面，僅系統管理員可見及存取，舊 `/settings/users` 導向 `/admin`。各頁提供 Breadcrumb 與依內容配置的 Skeleton。
 
 - 債務摘要以已結清筆數與整體已還百分比搭配原生 Progress 顯示還款進度。
+
+## 程式分工
+
+- `components/debts/`：債務統計、桌面／手機列表、明細與借還紀錄；`debt-dashboard.tsx` 負責組合畫面和 dialog 選取狀態。
+- `services/`：帳號、管理員、債務 API；集中路徑、HTTP 方法、版本與借款金額轉換，不依賴畫面元件。
+- `hooks/use-resource.ts`：共用資料載入、取消請求、錯誤及載入通知；`use-debt-history.ts` 保存明細分頁狀態。
+- `configs/`：中文顯示名稱及分頁選項；`utils/format.ts`：新臺幣與臺北日期格式化。
+- `lib/api.ts`：HTTP transport 與 API 錯誤；`lib/notifications.ts`：操作通知；`lib/types.ts` 與 `record-types.ts`：資料與操作型別；`lib/validation.ts`：表單驗證。
+- `components/ui/`：shadcn CLI 產生的原生元件；功能組合放在外層，避免改動原生樣式。
+
+依賴方向為畫面／hooks → services → API client；services 不反向引用畫面元件。新增 API 請先擴充 service，再接入表單及通知。

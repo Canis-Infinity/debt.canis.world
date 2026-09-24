@@ -1,32 +1,34 @@
 "use client"
+
+import { useAuth } from "@/components/auth-provider"
+import { MobileNavigation } from "@/components/mobile-navigation"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
+import { PageSkeleton } from "@/components/page-skeleton"
 import { SiteFooter } from "@/components/site-footer"
+import { ThemeSwitch } from "@/components/theme-switch"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { mutation } from "@/lib/notifications"
+import { logout as logoutAccount } from "@/services/auth"
+import {
+  LayoutDashboard,
+  LogOut,
+  ShieldCheck,
+  UserRound,
+  Wallet,
+} from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useRouter } from "nextjs-toploader/app"
 import { useEffect, useState } from "react"
-import {
-  Wallet,
-  ShieldCheck,
-  UserRound,
-  LogOut,
-  LayoutDashboard,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-} from "@/components/ui/empty"
-import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/components/auth-provider"
-import { ThemeSwitch } from "@/components/theme-switch"
-import { api, mutation } from "@/lib/api"
-import { MobileNavigation } from "@/components/mobile-navigation"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { PageSkeleton } from "@/components/page-skeleton"
-import { PageBreadcrumb } from "@/components/page-breadcrumb"
 
 export function AppShell({
   children,
@@ -70,9 +72,7 @@ export function AppShell({
   async function logout() {
     setPending(true)
     try {
-      await mutation("正在登出…", "已登出", () =>
-        api("/auth/logout", { method: "POST", body: "{}" })
-      )
+      await mutation("正在登出…", "已登出", () => logoutAccount())
       setUser(null)
       router.replace("/login")
     } catch {

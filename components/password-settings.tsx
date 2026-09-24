@@ -1,20 +1,24 @@
 "use client"
-import { ProfileForm } from "@/components/profile-form"
-import { useState } from "react"
-import { useRouter } from "nextjs-toploader/app"
-import { KeyRound } from "lucide-react"
+
 import { useAuth } from "@/components/auth-provider"
-import { PasswordInput } from "@/components/password-input"
 import { FormField } from "@/components/form-field"
+import { PasswordInput } from "@/components/password-input"
+import { ProfileForm } from "@/components/profile-form"
 import { Button } from "@/components/ui/button"
 import { FieldError, FieldGroup } from "@/components/ui/field"
 import { toast } from "@/components/ui/toast"
-import { api, ApiError, mutation } from "@/lib/api"
+import { ApiError } from "@/lib/api"
+import { mutation } from "@/lib/notifications"
 import {
   changePasswordSchema,
   zodFields,
   type FieldErrors,
 } from "@/lib/validation"
+import { changePassword } from "@/services/auth"
+import { KeyRound } from "lucide-react"
+import { useRouter } from "nextjs-toploader/app"
+import { useState } from "react"
+
 export function PasswordSettings() {
   const { user, setUser } = useAuth()
   const router = useRouter()
@@ -35,10 +39,7 @@ export function PasswordSettings() {
     setErrors({})
     try {
       await mutation("正在修改密碼…", "密碼已更新，請重新登入", () =>
-        api("/auth/password", {
-          method: "POST",
-          body: JSON.stringify(parsed.data),
-        })
+        changePassword(parsed.data)
       )
       setUser(null)
       router.replace("/login")

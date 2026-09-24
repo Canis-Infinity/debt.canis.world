@@ -1,88 +1,66 @@
 "use client"
-import { useDialogState } from "@/hooks/use-dialog-state"
-import { useCallback, useEffect, useState } from "react"
-import {
-  RefreshCw,
-  ShieldCheck,
-  UserCheck,
-  Users,
-  UserX,
-  Search,
-  LockKeyholeOpen,
-  LockKeyhole,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Toggle } from "@/components/ui/toggle"
+
+import { AppSelect } from "@/components/app-select"
+import { ContentSkeleton } from "@/components/page-skeleton"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { FieldError } from "@/components/ui/field"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { AppSelect } from "@/components/app-select"
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyMedia,
-  EmptyContent,
-} from "@/components/ui/empty"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-
-import { FieldError } from "@/components/ui/field"
-import { toast } from "@/components/ui/toast"
-import { api, mutation } from "@/lib/api"
+import { Toggle } from "@/components/ui/toggle"
+import { statusLabels } from "@/configs/labels"
+import { useDialogState } from "@/hooks/use-dialog-state"
+import { useResource } from "@/hooks/use-resource"
+import { mutation } from "@/lib/notifications"
+import { type User } from "@/lib/types"
 import { accountStatusSchema } from "@/lib/validation"
-import { statusLabels, type User } from "@/lib/types"
-import { ContentSkeleton } from "@/components/page-skeleton"
+import { listUsers, reviewUser } from "@/services/admin"
+import {
+  LockKeyhole,
+  LockKeyholeOpen,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  UserCheck,
+  Users,
+  UserX,
+} from "lucide-react"
+import { useState } from "react"
 
 type Action = { user: User; status: "approved" | "rejected" | "suspended" }
 export function AdminContent() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
+  const {
+    data: users,
+    setData: setUsers,
+    loading,
+    error,
+    load,
+  } = useResource(listUsers, [], "正在載入帳號…")
   const [filter, setFilter] = useState("pending")
   const [query, setQuery] = useState("")
   const [actionOpen, setActionOpen] = useState(false)
   const [action, setAction, actionKey] = useDialogState<Action>()
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState("")
-  const load = useCallback((signal?: AbortSignal) => {
-    const id = toast.add({
-      title: "正在載入帳號…",
-      type: "loading",
-      timeout: 0,
-    })
-    return api<{ users: User[] }>("/admin/users", { signal })
-      .then((result) => {
-        setUsers(result.users)
-        setError("")
-        toast.close(id)
-      })
-      .catch((err) => {
-        if (!signal?.aborted) {
-          const message = err instanceof Error ? err.message : "載入失敗"
-          setError(message)
-          toast.update(id, { title: message, type: "error", timeout: 7000 })
-        } else toast.close(id)
-      })
-      .finally(() => {
-        if (!signal?.aborted) setLoading(false)
-      })
-  }, [])
-  useEffect(() => {
-    const controller = new AbortController()
-    void load(controller.signal)
-    return () => controller.abort()
-  }, [load])
   async function confirm() {
     if (!action || pending) return
     setPending(true)
@@ -93,10 +71,7 @@ export function AdminContent() {
         version: action.user.version,
       })
       const result = await mutation("正在更新帳號…", "帳號狀態已更新", () =>
-        api<{ user: User }>(`/admin/users/${action.user.id}`, {
-          method: "PATCH",
-          body: JSON.stringify(input),
-        })
+        reviewUser(action.user.id, input)
       )
       setUsers((items) =>
         items.map((user) => (user.id === result.user.id ? result.user : user))

@@ -1,9 +1,20 @@
 "use client"
-import { useNestedBackdrop } from "@/hooks/use-nested-backdrop"
-import { createPortal } from "react-dom"
-import { useRef, useState } from "react"
-import { useDialogPresence } from "@/hooks/use-dialog-presence"
+
+import { AppSelect } from "@/components/app-select"
+import { DatePicker } from "@/components/date-picker"
+import { FormField } from "@/components/form-field"
+import { PaymentFields } from "@/components/payment-fields"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { FieldError, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   InputGroup,
@@ -11,43 +22,26 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group"
-import { AppSelect } from "@/components/app-select"
-import { DatePicker } from "@/components/date-picker"
 import { Textarea } from "@/components/ui/textarea"
-import { FieldError, FieldGroup } from "@/components/ui/field"
+import { toast } from "@/components/ui/toast"
+import { useDialogPresence } from "@/hooks/use-dialog-presence"
+import { useNestedBackdrop } from "@/hooks/use-nested-backdrop"
+import { ApiError } from "@/lib/api"
+import { mutation } from "@/lib/notifications"
+import type { Editor } from "@/lib/record-types"
+import { type Debt, type Payment } from "@/lib/types"
 import {
-  Dialog,
-  DialogContent,
-  DialogOverlay,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { FormField } from "@/components/form-field"
-import { PaymentFields } from "@/components/payment-fields"
-import { api, ApiError, mutation } from "@/lib/api"
-import {
-  debtSchema,
   borrowingSchema,
+  debtSchema,
   repaymentSchema,
   zodFields,
   type FieldErrors,
 } from "@/lib/validation"
-import {
-  money,
-  today,
-  type Debt,
-  type Borrowing,
-  type Payment,
-  type Repayment,
-} from "@/lib/types"
-import { toast } from "@/components/ui/toast"
+import { saveRecord } from "@/services/debts"
+import { money, today } from "@/utils/format"
+import { useRef, useState } from "react"
+import { createPortal } from "react-dom"
 
-export type Editor =
-  | { kind: "debt"; debt?: Debt }
-  | { kind: "borrowing"; debt: Debt; borrowing?: Borrowing }
-  | { kind: "repayment"; debt: Debt; repayment?: Repayment }
 export function RecordDialog({
   editor,
   onClose,
@@ -64,7 +58,6 @@ export function RecordDialog({
   const isBorrowing = editor.kind === "borrowing"
   const [borrowingMode, setBorrowingMode] = useState("existing")
   const appendBorrowing = isBorrowing && borrowingMode === "existing"
-  const newDebt = isBorrowing && borrowingMode === "new"
   const record = isRepayment
     ? editor.repayment
     : isBorrowing
@@ -127,24 +120,9 @@ export function RecordDialog({
     }
     setErrors({})
     setPending(true)
-    const path = isRepayment
-      ? `/debts/${editor.debt.id}/repayments${editor.repayment ? `/${editor.repayment.id}` : ""}`
-      : appendBorrowing
-        ? `/debts/${editor.debt!.id}/borrowings${editor.kind === "borrowing" && editor.borrowing ? `/${editor.borrowing.id}` : ""}`
-        : `/debts${editor.debt && !newDebt ? `/${editor.debt.id}` : ""}`
-    const body = {
-      ...parsed.data,
-      ...(editor.kind === "debt" && editor.debt
-        ? { amount: parsed.data.amount + editor.debt.amount - initialAmount }
-        : {}),
-      ...(editor.debt && !newDebt ? { version: editor.debt.version } : {}),
-    }
     try {
       const result = await mutation("正在儲存…", `${title}成功`, () =>
-        api<{ debt: Debt }>(path, {
-          method: record ? "PUT" : "POST",
-          body: JSON.stringify(body),
-        })
+        saveRecord(editor, parsed.data, borrowingMode)
       )
       afterExit.current = () => onSaved(result.debt)
       presence.close()

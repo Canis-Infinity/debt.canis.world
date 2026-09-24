@@ -1,25 +1,29 @@
 "use client"
-import { useNestedBackdrop } from "@/hooks/use-nested-backdrop"
-import { createPortal } from "react-dom"
-import { useRef, useState } from "react"
-import { useDialogPresence } from "@/hooks/use-dialog-presence"
-import { Trash2 } from "lucide-react"
+
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogOverlay,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogMedia,
+  AlertDialogOverlay,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { FieldError } from "@/components/ui/field"
-import { api, mutation, ApiError } from "@/lib/api"
-import type { Debt, Repayment, Borrowing } from "@/lib/types"
-import { money } from "@/lib/types"
+import { useDialogPresence } from "@/hooks/use-dialog-presence"
+import { useNestedBackdrop } from "@/hooks/use-nested-backdrop"
+import { ApiError } from "@/lib/api"
+import { mutation } from "@/lib/notifications"
+import type { Borrowing, Debt, Repayment } from "@/lib/types"
+import { deleteRecord } from "@/services/debts"
+import { money } from "@/utils/format"
+import { Trash2 } from "lucide-react"
+import { useRef, useState } from "react"
+import { createPortal } from "react-dom"
+
 export function DeleteDialog({
   debt,
   repayment,
@@ -54,14 +58,7 @@ export function DeleteDialog({
       const result = await mutation(
         "正在刪除…",
         record ? `${kind}紀錄已刪除` : "債務及全部借還紀錄已刪除",
-        () =>
-          api<{ debt?: Debt }>(
-            `/debts/${debt.id}${borrowing ? `/borrowings/${borrowing.id}` : repayment ? `/repayments/${repayment.id}` : ""}`,
-            {
-              method: "DELETE",
-              body: JSON.stringify({ version: debt.version }),
-            }
-          )
+        () => deleteRecord({ debt, borrowing, repayment })
       )
       afterExit.current = () => onDeleted(result.debt)
       presence.close()

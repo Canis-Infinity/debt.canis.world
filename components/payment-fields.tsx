@@ -1,8 +1,10 @@
 "use client"
+
+import { AppSelect } from "@/components/app-select"
 import { FormField } from "@/components/form-field"
 import { Input } from "@/components/ui/input"
-import { AppSelect } from "@/components/app-select"
-import { paymentLabels, type Payment } from "@/lib/types"
+import { paymentLabels } from "@/configs/labels"
+import { type Payment } from "@/lib/types"
 import type { FieldErrors } from "@/lib/validation"
 
 export function PaymentFields({

@@ -7,7 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## 專案規範
 
-- 所有 commit 與 push 必須透過 `@canis22788/git-czx`；停用會自動建立 commit 的腳手架選項。
+- 所有 commit 必須透過 `@canis22788/git-czx`，push 使用 `git push`；停用會自動建立 commit 的腳手架選項。
 - Commit message 必須包含 type、scope、subject、body；subject 與 body 使用中文，body 優先使用 Markdown 列點，不使用專案名稱作為 scope。
 - `components/ui/` 僅使用 shadcn CLI 安裝的原生 Base UI 元件，不自行修改；不足時使用 Dice UI。
 - 使用 `b1YmqvjO4` preset（base-nova）。更新元件時整套維持同一 preset，不混用其他 style；下拉選單使用 Select，日期使用 Calendar＋Popover，不使用瀏覽器原生選單或日期選擇器。

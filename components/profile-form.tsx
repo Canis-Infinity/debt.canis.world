@@ -1,15 +1,18 @@
 "use client"
-import { useState } from "react"
-import { Save } from "lucide-react"
+
 import { useAuth } from "@/components/auth-provider"
 import { FormField } from "@/components/form-field"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { FieldError, FieldGroup } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/toast"
-import { api, ApiError, mutation } from "@/lib/api"
+import { ApiError } from "@/lib/api"
+import { mutation } from "@/lib/notifications"
 import { profileSchema, zodFields, type FieldErrors } from "@/lib/validation"
-import type { User } from "@/lib/types"
+import { updateProfile } from "@/services/auth"
+import { Save } from "lucide-react"
+import { useState } from "react"
+
 export function ProfileForm() {
   const { user, setUser } = useAuth()
   const [name, setName] = useState(user?.name || "")
@@ -28,10 +31,7 @@ export function ProfileForm() {
     setPending(true)
     try {
       const result = await mutation("正在更新名稱…", "帳號名稱已更新", () =>
-        api<{ user: User }>("/auth/profile", {
-          method: "PATCH",
-          body: JSON.stringify(parsed.data),
-        })
+        updateProfile(parsed.data)
       )
       setUser(result.user)
       setName(result.user.name)

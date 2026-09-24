@@ -10,6 +10,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { PAGE_SIZES } from "@/configs/pagination"
 
 export function ListPagination({
   label,
@@ -50,7 +51,7 @@ export function ListPagination({
           label={`${label}每頁筆數`}
           value={String(pageSize)}
           onValueChange={(value) => onPageSizeChange(Number(value))}
-          options={[10, 20, 50, 100].map((size) => ({
+          options={PAGE_SIZES.map((size) => ({
             value: String(size),
             label: `每頁 ${size} 筆`,
           }))}

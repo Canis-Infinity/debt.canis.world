@@ -1,37 +1,43 @@
 "use client"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Field, FieldLabel } from "@/components/ui/field"
-import { SiteFooter } from "@/components/site-footer"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { useRouter } from "nextjs-toploader/app"
-import { Wallet, UserCheck } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
+import { useAuth } from "@/components/auth-provider"
+import { FormField } from "@/components/form-field"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
+import { PageSkeleton } from "@/components/page-skeleton"
 import { PasswordInput } from "@/components/password-input"
-import { FieldError, FieldGroup } from "@/components/ui/field"
+import { SiteFooter } from "@/components/site-footer"
+import { ThemeSwitch } from "@/components/theme-switch"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyMedia,
   EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
 } from "@/components/ui/empty"
-import { FormField } from "@/components/form-field"
-import { ThemeSwitch } from "@/components/theme-switch"
-import { useAuth } from "@/components/auth-provider"
-import { api, ApiError, mutation } from "@/lib/api"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/toast"
+import { ApiError } from "@/lib/api"
+import { mutation } from "@/lib/notifications"
 import {
   loginSchema,
   registerSchema,
   zodFields,
   type FieldErrors,
 } from "@/lib/validation"
-import type { User } from "@/lib/types"
-import { toast } from "@/components/ui/toast"
-import { PageSkeleton } from "@/components/page-skeleton"
-import { PageBreadcrumb } from "@/components/page-breadcrumb"
+import { login, register as registerAccount } from "@/services/auth"
+import { UserCheck, Wallet } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "nextjs-toploader/app"
+import { useEffect, useState } from "react"
 
 export function AuthForm({ register = false }: { register?: boolean }) {
   const { user, loading, setUser } = useAuth()
@@ -75,22 +81,12 @@ export function AuthForm({ register = false }: { register?: boolean }) {
       if (register) {
         const input = registerSchema.parse(raw)
         await mutation("正在送出申請…", "申請已送出，等待管理員核准", () =>
-          api("/auth/register", {
-            method: "POST",
-            body: JSON.stringify({
-              name: input.name,
-              email: input.email,
-              password: input.password,
-            }),
-          })
+          registerAccount(input)
         )
         setSubmitted(true)
       } else {
         const result = await mutation("正在登入…", "登入成功", () =>
-          api<{ user: User }>("/auth/login", {
-            method: "POST",
-            body: JSON.stringify(parsed.data),
-          })
+          login(parsed.data)
         )
         try {
           if (remember)
